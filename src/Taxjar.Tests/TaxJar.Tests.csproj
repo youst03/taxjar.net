@@ -8,6 +8,8 @@
     <SignAssembly>true</SignAssembly>
     <ReleaseVersion>3.3.2</ReleaseVersion>
     <OutputType>Library</OutputType>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

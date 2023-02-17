@@ -22,45 +22,45 @@ namespace Taxjar
 
     public class TaxjarApi
     {
-        internal RestClient apiClient;
-        public string apiToken { get; set; }
-        public string apiUrl { get; set; }
-        public IDictionary<string, string> headers { get; set; }
-        public int timeout { get; set; }
+        internal RestClient ApiClient;
+        public string ApiToken { get; set; }
+        public string ApiUrl { get; set; }
+        public IDictionary<string, string> Headers { get; set; }
+        public int Timeout { get; set; }
 
         public TaxjarApi(string token, object parameters = null)
         {
-            apiToken = token;
-            apiUrl = TaxjarConstants.DefaultApiUrl + "/" + TaxjarConstants.ApiVersion + "/";
-            headers = new Dictionary<string, string>();
-            timeout = 0; // Milliseconds
+            ApiToken = token;
+            ApiUrl = TaxjarConstants.DefaultApiUrl + "/" + TaxjarConstants.ApiVersion + "/";
+            Headers = new Dictionary<string, string>();
+            Timeout = 0; // Milliseconds
 
             if (parameters != null)
             {
                 if (parameters.GetType().GetProperty("apiUrl") != null)
                 {
-                    apiUrl = parameters.GetType().GetProperty("apiUrl").GetValue(parameters).ToString();
-                    apiUrl += "/" + TaxjarConstants.ApiVersion + "/";
+                    ApiUrl = parameters.GetType().GetProperty("apiUrl").GetValue(parameters).ToString();
+                    ApiUrl += "/" + TaxjarConstants.ApiVersion + "/";
                 }
 
                 if (parameters.GetType().GetProperty("headers") != null)
                 {
-                    headers = (IDictionary<string, string>)parameters.GetType().GetProperty("headers").GetValue(parameters);
+                    Headers = (IDictionary<string, string>)parameters.GetType().GetProperty("headers").GetValue(parameters);
                 }
 
                 if (parameters.GetType().GetProperty("timeout") != null)
                 {
-                    timeout = (int)parameters.GetType().GetProperty("timeout").GetValue(parameters);
+                    Timeout = (int)parameters.GetType().GetProperty("timeout").GetValue(parameters);
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(apiToken))
+            if (string.IsNullOrWhiteSpace(ApiToken))
             {
-                throw new ArgumentException("Please provide a TaxJar API key.", nameof(apiToken));
+                throw new ArgumentException("Please provide a TaxJar API key.", nameof(ApiToken));
             }
 
-            RestClient apiClient = new RestClient(apiUrl);
-            apiClient.AddDefaultParameter("User-Agent", GetUserAgent(), ParameterType.HttpHeader);
+            ApiClient = new RestClient(ApiUrl);
+            ApiClient.AddDefaultParameter("User-Agent", GetUserAgent(), ParameterType.HttpHeader);
         }
 
         public virtual void SetApiConfig(string key, object value)
@@ -68,7 +68,7 @@ namespace Taxjar
             if (key == "apiUrl")
             {
                 value += "/" + TaxjarConstants.ApiVersion + "/";
-                apiClient = new RestClient(value.ToString());
+                ApiClient = new RestClient(value.ToString());
             }
 
             GetType().GetProperty(key).SetValue(this, value, null);
@@ -87,15 +87,15 @@ namespace Taxjar
             };
             var includeBody = new[] { Method.Post, Method.Put, Method.Patch }.Contains(method);
 
-            foreach (var header in headers)
+            foreach (var header in Headers)
             {
                 request.AddHeader(header.Key, header.Value);
             }
 
-            request.AddHeader("Authorization", "Bearer " + apiToken);
+            request.AddHeader("Authorization", "Bearer " + ApiToken);
             request.AddHeader("User-Agent", GetUserAgent());
 
-            request.Timeout = timeout;
+            request.Timeout = Timeout;
 
             if (body != null)
             {
@@ -137,7 +137,7 @@ namespace Taxjar
         protected virtual T SendRequest<T>(string endpoint, object body = null, Method httpMethod = Method.Post) where T : new()
         {
             var request = CreateRequest(endpoint, httpMethod, body);
-            var response = apiClient.Execute<T>(request);
+            var response = ApiClient.Execute<T>(request);
 
             if ((int)response.StatusCode >= 400)
             {
@@ -157,7 +157,7 @@ namespace Taxjar
         protected virtual async Task<T> SendRequestAsync<T>(string endpoint, object body = null, Method httpMethod = Method.Post) where T : new()
         {
             var request = CreateRequest(endpoint, httpMethod, body);
-            var response = await apiClient.ExecuteAsync<T>(request).ConfigureAwait(false);
+            var response = await ApiClient.ExecuteAsync<T>(request).ConfigureAwait(false);
 
             if ((int)response.StatusCode >= 400)
             {

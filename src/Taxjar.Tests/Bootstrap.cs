@@ -10,19 +10,16 @@ namespace Taxjar.Tests
     public class Bootstrap
     {
         public static TaxjarApi client;
-        public static FluentMockServer server;
+        public static WireMockServer server;
         public static string apiKey;
 
         [OneTimeSetUp]
         public static void Init()
         {
-            if (server == null)
-            {
-                server = FluentMockServer.Start(new FluentMockServerSettings
+            server ??= WireMockServer.Start(new WireMockServerSettings
                 {
                     Urls = new[] { "http://localhost:9191" }
                 });
-            }
 
             var options = GetTestOptions();
             apiKey = options.ApiToken;

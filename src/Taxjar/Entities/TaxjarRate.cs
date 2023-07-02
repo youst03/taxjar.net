@@ -1,32 +1,32 @@
 ﻿using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class RateResponse
     {
         [JsonProperty("rate")]
-        public RateResponseAttributes Rate { get; set; }
+        public RateResponseAttributes? Rate { get; set; }
     }
 
     public class RateResponseAttributes
     {
         [JsonProperty("zip")]
-        public string Zip { get; set; }
+        public string? Zip { get; set; }
 
         [JsonProperty("state")]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [JsonProperty("state_rate")]
         public decimal StateRate { get; set; }
 
         [JsonProperty("county")]
-        public string County { get; set; }
+        public string? County { get; set; }
 
         [JsonProperty("county_rate")]
         public decimal CountyRate { get; set; }
 
         [JsonProperty("city")]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [JsonProperty("city_rate")]
         public decimal CityRate { get; set; }
@@ -42,10 +42,10 @@ namespace Taxjar
 
         // International
         [JsonProperty("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         // Australia / SST States
         [JsonProperty("country_rate")]
@@ -71,18 +71,18 @@ namespace Taxjar
     public class Rate
     {
         [JsonProperty("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [JsonProperty("zip")]
-        public string Zip { get; set; }
+        public string? Zip { get; set; }
 
         [JsonProperty("state")]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [JsonProperty("city")]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [JsonProperty("street")]
-        public string Street { get; set; }
+        public string? Street { get; set; }
     }
 }

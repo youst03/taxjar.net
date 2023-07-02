@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class TaxBreakdown : Breakdown
     {
@@ -27,9 +27,9 @@ namespace Taxjar
         public decimal SpecialDistrictTaxCollectable { get; set; }
 
         [JsonProperty("shipping")]
-        public TaxBreakdownShipping Shipping { get; set; }
+        public TaxBreakdownShipping? Shipping { get; set; }
 
         [JsonProperty("line_items")]
-        public List<TaxBreakdownLineItem> LineItems { get; set; }
+        public List<TaxBreakdownLineItem>? LineItems { get; set; }
     }
 }

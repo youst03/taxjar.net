@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class TaxBreakdownLineItem : Breakdown
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("state_sales_tax_rate")]
         public decimal StateSalesTaxRate { get; set; }

@@ -1,16 +1,16 @@
 ﻿using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class TaxjarError
     {
         [JsonProperty("error")]
-        public string Error { get; set; }
+        public string? Error { get; set; }
 
         [JsonProperty("detail")]
-        public string Detail { get; set; }
+        public string? Detail { get; set; }
 
         [JsonProperty("status")]
-        public string StatusCode { get; set; }
+        public string? StatusCode { get; set; }
     }
 }

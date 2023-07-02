@@ -1,69 +1,69 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class RefundsResponse
     {
         [JsonProperty("refunds")]
-        public List<string> Refunds { get; set; }
+        public List<string>? Refunds { get; set; }
     }
 
     public class RefundResponse
     {
         [JsonProperty("refund")]
-        public RefundResponseAttributes Refund { get; set; }
+        public RefundResponseAttributes? Refund { get; set; }
     }
 
     public class RefundResponseAttributes
     {
         [JsonProperty("transaction_id")]
-        public string TransactionId { get; set; }
+        public string? TransactionId { get; set; }
 
         [JsonProperty("transaction_reference_id")]
-        public string TransactionReferenceId { get; set; }
+        public string? TransactionReferenceId { get; set; }
 
         [JsonProperty("user_id")]
         public int UserId { get; set; }
 
         [JsonProperty("transaction_date")]
-        public string TransactionDate { get; set; }
+        public string? TransactionDate { get; set; }
 
         [JsonProperty("provider")]
-        public string Provider { get; set; }
+        public string? Provider { get; set; }
 
         [JsonProperty("exemption_type")]
-        public string ExemptionType { get; set; }
+        public string? ExemptionType { get; set; }
 
         [JsonProperty("from_country")]
-        public string FromCountry { get; set; }
+        public string? FromCountry { get; set; }
 
         [JsonProperty("from_zip")]
-        public string FromZip { get; set; }
+        public string? FromZip { get; set; }
 
         [JsonProperty("from_state")]
-        public string FromState { get; set; }
+        public string? FromState { get; set; }
 
         [JsonProperty("from_city")]
-        public string FromCity { get; set; }
+        public string? FromCity { get; set; }
 
         [JsonProperty("from_street")]
-        public string FromStreet { get; set; }
+        public string? FromStreet { get; set; }
 
         [JsonProperty("to_country")]
-        public string ToCountry { get; set; }
+        public string? ToCountry { get; set; }
 
         [JsonProperty("to_zip")]
-        public string ToZip { get; set; }
+        public string? ToZip { get; set; }
 
         [JsonProperty("to_state")]
-        public string ToState { get; set; }
+        public string? ToState { get; set; }
 
         [JsonProperty("to_city")]
-        public string ToCity { get; set; }
+        public string? ToCity { get; set; }
 
         [JsonProperty("to_street")]
-        public string ToStreet { get; set; }
+        public string? ToStreet { get; set; }
 
         [JsonProperty("amount", NullValueHandling = NullValueHandling.Ignore)]
         public decimal Amount { get; set; }
@@ -75,55 +75,55 @@ namespace Taxjar
         public decimal SalesTax { get; set; }
 
         [JsonProperty("line_items")]
-        public List<LineItem> LineItems { get; set; }
+        public List<LineItem>? LineItems { get; set; }
     }
 
     public class Refund
     {
         [JsonProperty("transaction_id")]
-        public string TransactionId { get; set; }
+        public string? TransactionId { get; set; }
 
         [JsonProperty("transaction_reference_id")]
-        public string TransactionReferenceId { get; set; }
+        public string? TransactionReferenceId { get; set; }
 
         [JsonProperty("transaction_date")]
-        public string TransactionDate { get; set; }
+        public string? TransactionDate { get; set; }
 
         [JsonProperty("provider", NullValueHandling = NullValueHandling.Ignore)]
-        public string Provider { get; set; }
+        public string? Provider { get; set; }
 
         [JsonProperty("exemption_type", NullValueHandling = NullValueHandling.Ignore)]
-        public string ExemptionType { get; set; }
+        public string? ExemptionType { get; set; }
 
         [JsonProperty("from_country")]
-        public string FromCountry { get; set; }
+        public string? FromCountry { get; set; }
 
         [JsonProperty("from_zip")]
-        public string FromZip { get; set; }
+        public string? FromZip { get; set; }
 
         [JsonProperty("from_state")]
-        public string FromState { get; set; }
+        public string? FromState { get; set; }
 
         [JsonProperty("from_city")]
-        public string FromCity { get; set; }
+        public string? FromCity { get; set; }
 
         [JsonProperty("from_street")]
-        public string FromStreet { get; set; }
+        public string? FromStreet { get; set; }
 
         [JsonProperty("to_country")]
-        public string ToCountry { get; set; }
+        public string? ToCountry { get; set; }
 
         [JsonProperty("to_zip")]
-        public string ToZip { get; set; }
+        public string? ToZip { get; set; }
 
         [JsonProperty("to_state")]
-        public string ToState { get; set; }
+        public string? ToState { get; set; }
 
         [JsonProperty("to_city")]
-        public string ToCity { get; set; }
+        public string? ToCity { get; set; }
 
         [JsonProperty("to_street")]
-        public string ToStreet { get; set; }
+        public string? ToStreet { get; set; }
 
         [JsonProperty("amount", NullValueHandling = NullValueHandling.Ignore)]
         public decimal Amount { get; set; }
@@ -135,24 +135,24 @@ namespace Taxjar
         public decimal SalesTax { get; set; }
 
         [JsonProperty("customer_id")]
-        public string CustomerId { get; set; }
+        public string? CustomerId { get; set; }
 
         [JsonProperty("line_items")]
-        public List<LineItem> LineItems { get; set; }
+        public List<LineItem>? LineItems { get; set; }
     }
 
     public class RefundFilter
     {
         [JsonProperty("transaction_date")]
-        public string TransactionDate { get; set; }
+        public string? TransactionDate { get; set; }
 
         [JsonProperty("from_transaction_date")]
-        public string FromTransactionDate { get; set; }
+        public string? FromTransactionDate { get; set; }
 
         [JsonProperty("to_transaction_date")]
-        public string ToTransactionDate { get; set; }
+        public string? ToTransactionDate { get; set; }
 
         [JsonProperty("provider")]
-        public string Provider { get; set; }
+        public string? Provider { get; set; }
     }
 }

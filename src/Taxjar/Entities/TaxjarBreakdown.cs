@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class Breakdown
     {

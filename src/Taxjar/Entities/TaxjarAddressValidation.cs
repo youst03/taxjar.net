@@ -1,29 +1,29 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class AddressValidationResponse
     {
         [JsonProperty("addresses")]
-        public List<Address> Addresses { get; set; }
+        public List<Address>? Addresses { get; set; }
     }
 
     public class Address
     {
         [JsonProperty("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [JsonProperty("zip")]
-        public string Zip { get; set; }
+        public string? Zip { get; set; }
 
         [JsonProperty("state")]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [JsonProperty("city")]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [JsonProperty("street")]
-        public string Street { get; set; }
+        public string? Street { get; set; }
     }
 }

@@ -1,23 +1,23 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class CategoriesResponse
     {
         [JsonProperty("categories")]
-        public List<Category> Categories { get; set; }
+        public List<Category>? Categories { get; set; }
     }
 
     public class Category
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [JsonProperty("product_tax_code")]
-        public string ProductTaxCode { get; set; }
+        public string? ProductTaxCode { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

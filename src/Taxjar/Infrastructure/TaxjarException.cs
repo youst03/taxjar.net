@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Net;
+using Taxjar.Entities;
 
-namespace Taxjar
+namespace Taxjar.Infrastructure
 {
     [Serializable]
     public class TaxjarException : ApplicationException

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class TaxResponse
     {
         [JsonProperty("tax")]
-        public TaxResponseAttributes Tax { get; set; }
+        public TaxResponseAttributes? Tax { get; set; }
     }
 
     public class TaxResponseAttributes
@@ -33,49 +33,49 @@ namespace Taxjar
         public bool FreightTaxable { get; set; }
 
         [JsonProperty("tax_source")]
-        public string TaxSource { get; set; }
+        public string? TaxSource { get; set; }
 
         [JsonProperty("exemption_type")]
-        public string ExemptionType { get; set; }
+        public string? ExemptionType { get; set; }
 
         [JsonProperty("jurisdictions")]
-        public TaxJurisdictions Jurisdictions { get; set; }
+        public TaxJurisdictions? Jurisdictions { get; set; }
 
         [JsonProperty("breakdown")]
-        public TaxBreakdown Breakdown { get; set; }
+        public TaxBreakdown? Breakdown { get; set; }
     }
 
     public class Tax
     {
         [JsonProperty("from_country")]
-        public string FromCountry { get; set; }
+        public string? FromCountry { get; set; }
 
         [JsonProperty("from_zip")]
-        public string FromZip { get; set; }
+        public string? FromZip { get; set; }
 
         [JsonProperty("from_state")]
-        public string FromState { get; set; }
+        public string? FromState { get; set; }
 
         [JsonProperty("from_city")]
-        public string FromCity { get; set; }
+        public string? FromCity { get; set; }
 
         [JsonProperty("from_street")]
-        public string FromStreet { get; set; }
+        public string? FromStreet { get; set; }
 
         [JsonProperty("to_country")]
-        public string ToCountry { get; set; }
+        public string? ToCountry { get; set; }
 
         [JsonProperty("to_zip")]
-        public string ToZip { get; set; }
+        public string? ToZip { get; set; }
 
         [JsonProperty("to_state")]
-        public string ToState { get; set; }
+        public string? ToState { get; set; }
 
         [JsonProperty("to_city")]
-        public string ToCity { get; set; }
+        public string? ToCity { get; set; }
 
         [JsonProperty("to_street")]
-        public string ToStreet { get; set; }
+        public string? ToStreet { get; set; }
 
         [JsonProperty("amount", NullValueHandling = NullValueHandling.Ignore)]
         public decimal Amount { get; set; }
@@ -84,28 +84,28 @@ namespace Taxjar
         public decimal Shipping { get; set; }
 
         [JsonProperty("customer_id")]
-        public string CustomerId { get; set; }
+        public string? CustomerId { get; set; }
 
         [JsonProperty("exemption_type", NullValueHandling = NullValueHandling.Ignore)]
-        public string ExemptionType { get; set; }
+        public string? ExemptionType { get; set; }
 
         [JsonProperty("nexus_addresses")]
-        public List<NexusAddress> NexusAddresses { get; set; }
+        public List<NexusAddress>? NexusAddresses { get; set; }
 
         [JsonProperty("line_items")]
-        public List<TaxLineItem> LineItems { get; set; }
+        public List<TaxLineItem>? LineItems { get; set; }
     }
 
     public class TaxLineItem
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("quantity")]
         public int Quantity { get; set; }
 
         [JsonProperty("product_tax_code")]
-        public string ProductTaxCode { get; set; }
+        public string? ProductTaxCode { get; set; }
 
         [JsonProperty("unit_price")]
         public decimal UnitPrice { get; set; }

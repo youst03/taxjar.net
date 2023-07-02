@@ -1,23 +1,23 @@
 ﻿using Newtonsoft.Json;
 
-namespace Taxjar
+namespace Taxjar.Entities
 {
     public class LineItem
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("quantity")]
         public int Quantity { get; set; }
 
         [JsonProperty("product_identifier")]
-        public string ProductIdentifier { get; set; }
+        public string? ProductIdentifier { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [JsonProperty("product_tax_code")]
-        public string ProductTaxCode { get; set; }
+        public string? ProductTaxCode { get; set; }
 
         [JsonProperty("unit_price")]
         public decimal UnitPrice { get; set; }

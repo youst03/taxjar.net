@@ -140,6 +140,12 @@ namespace Taxjar
             var request = CreateRequest(endpoint, httpMethod, body);
             var response = ApiClient.Execute<T>(request);
 
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                System.Threading.Thread.Sleep(2000);
+                response = ApiClient.Execute<T>(request);
+            }
+
             if ((int)response.StatusCode >= 400)
             {
                 var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(response.Content);

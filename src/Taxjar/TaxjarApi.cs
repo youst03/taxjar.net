@@ -11,6 +11,7 @@ using RestSharp;
 using Taxjar.Entities;
 using Taxjar.Infrastructure;
 using RestRequest = RestSharp.RestRequest;
+// ReSharper disable UnusedMember.Global
 
 namespace Taxjar
 {
@@ -29,7 +30,7 @@ namespace Taxjar
         public IDictionary<string, string> Headers { get; set; }
         public int Timeout { get; set; }
 
-        public TaxjarApi(string token, object parameters = null)
+        public TaxjarApi(string token, object? parameters = null)
         {
             ApiToken = token;
             ApiUrl = TaxjarConstants.DefaultApiUrl + "/" + TaxjarConstants.ApiVersion + "/";
@@ -40,18 +41,18 @@ namespace Taxjar
             {
                 if (parameters.GetType().GetProperty("apiUrl") != null)
                 {
-                    ApiUrl = parameters.GetType().GetProperty("apiUrl").GetValue(parameters).ToString();
+                    ApiUrl = parameters.GetType().GetProperty("apiUrl")?.GetValue(parameters).ToString() ?? throw new ArgumentException("Please provide a TaxJar API URL.", nameof(parameters));
                     ApiUrl += "/" + TaxjarConstants.ApiVersion + "/";
                 }
 
                 if (parameters.GetType().GetProperty("headers") != null)
                 {
-                    Headers = (IDictionary<string, string>)parameters.GetType().GetProperty("headers").GetValue(parameters);
+                    Headers = (IDictionary<string, string>)parameters.GetType().GetProperty("headers")!.GetValue(parameters);
                 }
 
                 if (parameters.GetType().GetProperty("timeout") != null)
                 {
-                    Timeout = (int)parameters.GetType().GetProperty("timeout").GetValue(parameters);
+                    Timeout = (int)parameters.GetType().GetProperty("timeout")!.GetValue(parameters);
                 }
             }
 
@@ -64,23 +65,23 @@ namespace Taxjar
             ApiClient.AddDefaultParameter("User-Agent", GetUserAgent(), ParameterType.HttpHeader);
         }
 
-        public virtual void SetApiConfig(string key, object value)
-        {
-            if (key == "apiUrl")
-            {
-                value += "/" + TaxjarConstants.ApiVersion + "/";
-                ApiClient = new RestClient(value.ToString());
-            }
+        //public virtual void SetApiConfig(string key, object value)
+        //{
+        //    if (key == "apiUrl")
+        //    {
+        //        value += "/" + TaxjarConstants.ApiVersion + "/";
+        //        ApiClient = new RestClient(value.ToString());
+        //    }
 
-            GetType().GetProperty(key).SetValue(this, value, null);
-        }
+        //    GetType().GetProperty(key).SetValue(this, value, null);
+        //}
 
-        public virtual object GetApiConfig(string key)
-        {
-            return GetType().GetProperty(key).GetValue(this);
-        }
+        //public virtual object GetApiConfig(string key)
+        //{
+        //    return GetType().GetProperty(key).GetValue(this);
+        //}
 
-        protected virtual RestRequest CreateRequest(string action, Method method = Method.Post, object body = null)
+        protected virtual RestRequest CreateRequest(string action, Method method = Method.Post, object? body = null)
         {
             var request = new RestRequest(action, method)
             {
@@ -98,36 +99,34 @@ namespace Taxjar
 
             request.Timeout = Timeout;
 
-            if (body != null)
+            if (body == null) return request;
+            if (IsAnonymousType(body.GetType()))
             {
-                if (IsAnonymousType(body.GetType()))
+                if (includeBody)
                 {
-                    if (includeBody)
-                    {
-                        request.AddJsonBody(body);
-                    }
-                    else
-                    {
-                        foreach (var prop in body.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                        {
-                            request.AddQueryParameter(prop.Name, prop.GetValue(body).ToString());
-                        }
-                    }
+                    request.AddJsonBody(body);
                 }
                 else
                 {
-                    if (includeBody)
+                    foreach (var prop in body.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
-                        request.AddParameter("application/json", JsonConvert.SerializeObject(body), ParameterType.RequestBody);
+                        request.AddQueryParameter(prop.Name, prop.GetValue(body).ToString());
                     }
-                    else
-                    {
-                        body = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(body));
+                }
+            }
+            else
+            {
+                if (includeBody)
+                {
+                    request.AddParameter("application/json", JsonConvert.SerializeObject(body), ParameterType.RequestBody);
+                }
+                else
+                {
+                    body = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(body)) ?? throw new ArgumentNullException(nameof(body));
 
-                        foreach (var prop in JObject.FromObject(body).Properties())
-                        {
-                            request.AddQueryParameter(prop.Name, prop.Value.ToString());
-                        }
+                    foreach (var prop in JObject.FromObject(body).Properties())
+                    {
+                        request.AddQueryParameter(prop.Name, prop.Value.ToString());
                     }
                 }
             }
@@ -135,7 +134,7 @@ namespace Taxjar
             return request;
         }
 
-        protected virtual T SendRequest<T>(string endpoint, object body = null, Method httpMethod = Method.Post) where T : new()
+        protected virtual T SendRequest<T>(string endpoint, object? body = null, Method httpMethod = Method.Post) where T : new()
         {
             var request = CreateRequest(endpoint, httpMethod, body);
             var response = ApiClient.Execute<T>(request);
@@ -146,10 +145,12 @@ namespace Taxjar
                 response = ApiClient.Execute<T>(request);
             }
 
+            var content = response.Content ?? throw new Exception("No content found in response.");
+
             if ((int)response.StatusCode >= 400)
             {
-                var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(response.Content);
-                var errorMessage = taxjarError.Error + " - " + taxjarError.Detail;
+                var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(content);
+                var errorMessage = taxjarError?.Error + " - " + taxjarError?.Detail;
                 throw new TaxjarException(response.StatusCode, taxjarError, errorMessage);
             }
 
@@ -158,18 +159,19 @@ namespace Taxjar
                 throw new Exception(response.ErrorMessage, response.ErrorException);
             }
 
-            return JsonConvert.DeserializeObject<T>(response.Content);
+            return JsonConvert.DeserializeObject<T>(content)!;
         }
 
-        protected virtual async Task<T> SendRequestAsync<T>(string endpoint, object body = null, Method httpMethod = Method.Post) where T : new()
+        protected virtual async Task<T> SendRequestAsync<T>(string endpoint, object? body = null, Method httpMethod = Method.Post) where T : new()
         {
             var request = CreateRequest(endpoint, httpMethod, body);
             var response = await ApiClient.ExecuteAsync<T>(request).ConfigureAwait(false);
 
+            var content = response.Content ?? throw new Exception("No content found in response.");
             if ((int)response.StatusCode >= 400)
             {
-                var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(response.Content);
-                var errorMessage = taxjarError.Error + " - " + taxjarError.Detail;
+                var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(content);
+                var errorMessage = taxjarError?.Error + " - " + taxjarError?.Detail;
                 throw new TaxjarException(response.StatusCode, taxjarError, errorMessage);
             }
 
@@ -178,7 +180,7 @@ namespace Taxjar
                 throw new Exception(response.ErrorMessage, response.ErrorException);
             }
 
-            return JsonConvert.DeserializeObject<T>(response.Content);
+            return JsonConvert.DeserializeObject<T>(content)!;
         }
 
         protected virtual bool IsAnonymousType(Type type)
@@ -200,68 +202,68 @@ namespace Taxjar
             return response.Categories;
         }
 
-        public virtual RateResponseAttributes RatesForLocation(string zip, object parameters = null)
+        public virtual RateResponseAttributes? RatesForLocation(string zip, object? parameters = null)
         {
             var response = SendRequest<RateResponse>("rates/" + zip, parameters, Method.Get);
             return response.Rate;
         }
 
-        public virtual TaxResponseAttributes TaxForOrder(object parameters)
+        public virtual TaxResponseAttributes? TaxForOrder(object parameters)
         {
-            var response = SendRequest<TaxResponse>("taxes", parameters, Method.Post);
+            var response = SendRequest<TaxResponse>("taxes", parameters);
             return response.Tax;
         }
 
-        public virtual List<String> ListOrders(object parameters = null)
+        public virtual List<string>? ListOrders(object? parameters = null)
         {
             var response = SendRequest<OrdersResponse>("transactions/orders", parameters, Method.Get);
             return response.Orders;
         }
 
-        public virtual OrderResponseAttributes ShowOrder(string transactionId, object parameters = null)
+        public virtual OrderResponseAttributes? ShowOrder(string transactionId, object? parameters = null)
         {
             var response = SendRequest<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Get);
             return response.Order;
         }
 
-        public virtual OrderResponseAttributes CreateOrder(object parameters)
+        public virtual OrderResponseAttributes? CreateOrder(object parameters)
         {
-            var response = SendRequest<OrderResponse>("transactions/orders", parameters, Method.Post);
+            var response = SendRequest<OrderResponse>("transactions/orders", parameters);
             return response.Order;
         }
 
-        public virtual OrderResponseAttributes UpdateOrder(object parameters)
+        public virtual OrderResponseAttributes? UpdateOrder(object parameters)
         {
             var transactionId = GetTransactionIdFromParameters(parameters);
             var response = SendRequest<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Put);
             return response.Order;
         }
 
-        public virtual OrderResponseAttributes DeleteOrder(string transactionId, object parameters = null)
+        public virtual OrderResponseAttributes? DeleteOrder(string transactionId, object? parameters = null)
         {
             var response = SendRequest<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Delete);
             return response.Order;
         }
 
-        public virtual List<String> ListRefunds(object parameters)
+        public virtual List<string>? ListRefunds(object parameters)
         {
             var response = SendRequest<RefundsResponse>("transactions/refunds", parameters, Method.Get);
             return response.Refunds;
         }
 
-        public virtual RefundResponseAttributes ShowRefund(string transactionId, object parameters = null)
+        public virtual RefundResponseAttributes? ShowRefund(string transactionId, object? parameters = null)
         {
             var response = SendRequest<RefundResponse>("transactions/refunds/" + transactionId, parameters, Method.Get);
             return response.Refund;
         }
 
-        public virtual RefundResponseAttributes CreateRefund(object parameters)
+        public virtual RefundResponseAttributes? CreateRefund(object parameters)
         {
-            var response = SendRequest<RefundResponse>("transactions/refunds", parameters, Method.Post);
+            var response = SendRequest<RefundResponse>("transactions/refunds", parameters);
             return response.Refund;
         }
 
-        public virtual RefundResponseAttributes UpdateRefund(object parameters)
+        public virtual RefundResponseAttributes? UpdateRefund(object parameters)
         {
             var transactionId = GetTransactionIdFromParameters(parameters);
 
@@ -269,31 +271,31 @@ namespace Taxjar
             return response.Refund;
         }
 
-        public virtual RefundResponseAttributes DeleteRefund(string transactionId, object parameters = null)
+        public virtual RefundResponseAttributes? DeleteRefund(string transactionId, object? parameters = null)
         {
             var response = SendRequest<RefundResponse>("transactions/refunds/" + transactionId, parameters, Method.Delete);
             return response.Refund;
         }
 
-        public virtual List<String> ListCustomers(object parameters = null)
+        public virtual List<String>? ListCustomers(object? parameters = null)
         {
             var response = SendRequest<CustomersResponse>("customers", parameters, Method.Get);
             return response.Customers;
         }
 
-        public virtual CustomerResponseAttributes ShowCustomer(string customerId)
+        public virtual CustomerResponseAttributes? ShowCustomer(string customerId)
         {
             var response = SendRequest<CustomerResponse>("customers/" + customerId, null, Method.Get);
             return response.Customer;
         }
 
-        public virtual CustomerResponseAttributes CreateCustomer(object parameters)
+        public virtual CustomerResponseAttributes? CreateCustomer(object parameters)
         {
-            var response = SendRequest<CustomerResponse>("customers", parameters, Method.Post);
+            var response = SendRequest<CustomerResponse>("customers", parameters);
             return response.Customer;
         }
 
-        public virtual CustomerResponseAttributes UpdateCustomer(object parameters)
+        public virtual CustomerResponseAttributes? UpdateCustomer(object parameters)
         {
             var customerId = GetCustomerIdFromParameters(parameters);
 
@@ -301,166 +303,166 @@ namespace Taxjar
             return response.Customer;
         }
 
-        public virtual CustomerResponseAttributes DeleteCustomer(string customerId)
+        public virtual CustomerResponseAttributes? DeleteCustomer(string customerId)
         {
             var response = SendRequest<CustomerResponse>("customers/" + customerId, null, Method.Delete);
             return response.Customer;
         }
 
-        public virtual List<NexusRegion> NexusRegions()
+        public virtual List<NexusRegion>? NexusRegions()
         {
             var response = SendRequest<NexusRegionsResponse>("nexus/regions", null, Method.Get);
             return response.Regions;
         }
 
-        public virtual List<Address> ValidateAddress(object parameters)
+        public virtual List<Address>? ValidateAddress(object parameters)
         {
-            var response = SendRequest<AddressValidationResponse>("addresses/validate", parameters, Method.Post);
+            var response = SendRequest<AddressValidationResponse>("addresses/validate", parameters);
             return response.Addresses;
         }
 
-        public virtual ValidationResponseAttributes ValidateVat(object parameters)
+        public virtual ValidationResponseAttributes? ValidateVat(object parameters)
         {
             var response = SendRequest<ValidationResponse>("validation", parameters, Method.Get);
             return response.Validation;
         }
 
-        public virtual List<SummaryRate> SummaryRates()
+        public virtual List<SummaryRate>? SummaryRates()
         {
             var response = SendRequest<SummaryRatesResponse>("summary_rates", null, Method.Get);
             return response.SummaryRates;
         }
 
-        public virtual async Task<List<Category>> CategoriesAsync()
+        public virtual async Task<List<Category>?> CategoriesAsync()
         {
             var response = await SendRequestAsync<CategoriesResponse>("categories", null, Method.Get).ConfigureAwait(false);
             return response.Categories;
         }
 
-        public virtual async Task<RateResponseAttributes> RatesForLocationAsync(string zip, object parameters = null)
+        public virtual async Task<RateResponseAttributes?> RatesForLocationAsync(string zip, object? parameters = null)
         {
             var response = await SendRequestAsync<RateResponse>("rates/" + zip, parameters, Method.Get).ConfigureAwait(false);
             return response.Rate;
         }
 
-        public virtual async Task<TaxResponseAttributes> TaxForOrderAsync(object parameters)
+        public virtual async Task<TaxResponseAttributes?> TaxForOrderAsync(object parameters)
         {
-            var response = await SendRequestAsync<TaxResponse>("taxes", parameters, Method.Post).ConfigureAwait(false);
+            var response = await SendRequestAsync<TaxResponse>("taxes", parameters).ConfigureAwait(false);
             return response.Tax;
         }
 
-        public virtual async Task<List<string>> ListOrdersAsync(object parameters = null)
+        public virtual async Task<List<string>?> ListOrdersAsync(object? parameters = null)
         {
             var response = await SendRequestAsync<OrdersResponse>("transactions/orders", parameters, Method.Get).ConfigureAwait(false);
             return response.Orders;
         }
 
-        public virtual async Task<OrderResponseAttributes> ShowOrderAsync(string transactionId, object parameters = null)
+        public virtual async Task<OrderResponseAttributes?> ShowOrderAsync(string transactionId, object? parameters = null)
         {
             var response = await SendRequestAsync<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Get).ConfigureAwait(false);
             return response.Order;
         }
 
-        public virtual async Task<OrderResponseAttributes> CreateOrderAsync(object parameters)
+        public virtual async Task<OrderResponseAttributes?> CreateOrderAsync(object parameters)
         {
-            var response = await SendRequestAsync<OrderResponse>("transactions/orders", parameters, Method.Post).ConfigureAwait(false);
+            var response = await SendRequestAsync<OrderResponse>("transactions/orders", parameters).ConfigureAwait(false);
             return response.Order;
         }
 
-        public virtual async Task<OrderResponseAttributes> UpdateOrderAsync(object parameters)
+        public virtual async Task<OrderResponseAttributes?> UpdateOrderAsync(object parameters)
         {
             var transactionId = GetTransactionIdFromParameters(parameters);
             var response = await SendRequestAsync<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Put).ConfigureAwait(false);
             return response.Order;
         }
 
-        public virtual async Task<OrderResponseAttributes> DeleteOrderAsync(string transactionId, object parameters = null)
+        public virtual async Task<OrderResponseAttributes?> DeleteOrderAsync(string transactionId, object? parameters = null)
         {
             var response = await SendRequestAsync<OrderResponse>("transactions/orders/" + transactionId, parameters, Method.Delete).ConfigureAwait(false);
             return response.Order;
         }
 
-        public virtual async Task<List<string>> ListRefundsAsync(object parameters)
+        public virtual async Task<List<string>?> ListRefundsAsync(object parameters)
         {
             var response = await SendRequestAsync<RefundsResponse>("transactions/refunds", parameters, Method.Get).ConfigureAwait(false);
             return response.Refunds;
         }
 
-        public virtual async Task<RefundResponseAttributes> ShowRefundAsync(string transactionId, object parameters = null)
+        public virtual async Task<RefundResponseAttributes?> ShowRefundAsync(string transactionId, object? parameters = null)
         {
             var response = await SendRequestAsync<RefundResponse>("transactions/refunds/" + transactionId, parameters, Method.Get).ConfigureAwait(false);
             return response.Refund;
         }
 
-        public virtual async Task<RefundResponseAttributes> CreateRefundAsync(object parameters)
+        public virtual async Task<RefundResponseAttributes?> CreateRefundAsync(object parameters)
         {
-            var response = await SendRequestAsync<RefundResponse>("transactions/refunds", parameters, Method.Post).ConfigureAwait(false);
+            var response = await SendRequestAsync<RefundResponse>("transactions/refunds", parameters).ConfigureAwait(false);
             return response.Refund;
         }
 
-        public virtual async Task<RefundResponseAttributes> UpdateRefundAsync(object parameters)
+        public virtual async Task<RefundResponseAttributes?> UpdateRefundAsync(object parameters)
         {
             var transactionId = GetTransactionIdFromParameters(parameters);
             var response = await SendRequestAsync<RefundResponse>("transactions/refunds/" + transactionId, parameters, Method.Put).ConfigureAwait(false);
             return response.Refund;
         }
 
-        public virtual async Task<RefundResponseAttributes> DeleteRefundAsync(string transactionId, object parameters = null)
+        public virtual async Task<RefundResponseAttributes?> DeleteRefundAsync(string transactionId, object? parameters = null)
         {
             var response = await SendRequestAsync<RefundResponse>("transactions/refunds/" + transactionId, parameters, Method.Delete).ConfigureAwait(false);
             return response.Refund;
         }
 
-        public virtual async Task<List<string>> ListCustomersAsync(object parameters = null)
+        public virtual async Task<List<string>?> ListCustomersAsync(object? parameters = null)
         {
             var response = await SendRequestAsync<CustomersResponse>("customers", parameters, Method.Get).ConfigureAwait(false);
             return response.Customers;
         }
 
-        public virtual async Task<CustomerResponseAttributes> ShowCustomerAsync(string customerId)
+        public virtual async Task<CustomerResponseAttributes?> ShowCustomerAsync(string customerId)
         {
             var response = await SendRequestAsync<CustomerResponse>("customers/" + customerId, null, Method.Get).ConfigureAwait(false);
             return response.Customer;
         }
 
-        public virtual async Task<CustomerResponseAttributes> CreateCustomerAsync(object parameters)
+        public virtual async Task<CustomerResponseAttributes?> CreateCustomerAsync(object parameters)
         {
-            var response = await SendRequestAsync<CustomerResponse>("customers", parameters, Method.Post).ConfigureAwait(false);
+            var response = await SendRequestAsync<CustomerResponse>("customers", parameters).ConfigureAwait(false);
             return response.Customer;
         }
 
-        public virtual async Task<CustomerResponseAttributes> UpdateCustomerAsync(object parameters)
+        public virtual async Task<CustomerResponseAttributes?> UpdateCustomerAsync(object parameters)
         {
             var customerId = GetCustomerIdFromParameters(parameters);
             var response = await SendRequestAsync<CustomerResponse>("customers/" + customerId, parameters, Method.Put).ConfigureAwait(false);
             return response.Customer;
         }
 
-        public virtual async Task<CustomerResponseAttributes> DeleteCustomerAsync(string customerId)
+        public virtual async Task<CustomerResponseAttributes?> DeleteCustomerAsync(string customerId)
         {
             var response = await SendRequestAsync<CustomerResponse>("customers/" + customerId, null, Method.Delete).ConfigureAwait(false);
             return response.Customer;
         }
 
-        public virtual async Task<List<NexusRegion>> NexusRegionsAsync()
+        public virtual async Task<List<NexusRegion>?> NexusRegionsAsync()
         {
             var response = await SendRequestAsync<NexusRegionsResponse>("nexus/regions", null, Method.Get).ConfigureAwait(false);
             return response.Regions;
         }
 
-        public virtual async Task<List<Address>> ValidateAddressAsync(object parameters)
+        public virtual async Task<List<Address>?> ValidateAddressAsync(object parameters)
         {
-            var response = await SendRequestAsync<AddressValidationResponse>("addresses/validate", parameters, Method.Post).ConfigureAwait(false);
+            var response = await SendRequestAsync<AddressValidationResponse>("addresses/validate", parameters).ConfigureAwait(false);
             return response.Addresses;
         }
 
-        public virtual async Task<ValidationResponseAttributes> ValidateVatAsync(object parameters)
+        public virtual async Task<ValidationResponseAttributes?> ValidateVatAsync(object parameters)
         {
             var response = await SendRequestAsync<ValidationResponse>("validation", parameters, Method.Get).ConfigureAwait(false);
             return response.Validation;
         }
 
-        public virtual async Task<List<SummaryRate>> SummaryRatesAsync()
+        public virtual async Task<List<SummaryRate>?> SummaryRatesAsync()
         {
             var response = await SendRequestAsync<SummaryRatesResponse>("summary_rates", null, Method.Get).ConfigureAwait(false);
             return response.SummaryRates;
@@ -492,7 +494,7 @@ namespace Taxjar
             return customerId;
         }
 
-        private string GetValueOrDefault(object parameters, PropertyInfo propertyInfo)
+        private string? GetValueOrDefault(object parameters, PropertyInfo? propertyInfo)
         {
             return propertyInfo == null ? null : propertyInfo.GetValue(parameters).ToString();
         }

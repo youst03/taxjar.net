@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -165,23 +166,67 @@ namespace Taxjar
         protected virtual async Task<T> SendRequestAsync<T>(string endpoint, object? body = null, Method httpMethod = Method.Post) where T : new()
         {
             var request = CreateRequest(endpoint, httpMethod, body);
-            var response = await ApiClient.ExecuteAsync<T>(request).ConfigureAwait(false);
 
-            var content = response.Content ?? throw new Exception("No content found in response.");
-            if ((int)response.StatusCode >= 400)
+            int retries = 0;
+            int maxRetries = 4; // Adjust the maximum number of retries as needed
+            int initialBackoffDelay = 500; // Initial delay in milliseconds
+            int backoffFactor = 2;
+
+            while (true)  // Loop until a successful response or maximum retries are reached
             {
-                var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(content);
-                var errorMessage = taxjarError?.Error + " - " + taxjarError?.Detail;
-                throw new TaxjarException(response.StatusCode, taxjarError, errorMessage);
-            }
+                try
+                {
+                    var response = await ApiClient.ExecuteAsync<T>(request).ConfigureAwait(false);
 
-            if (response.ErrorException != null)
-            {
-                throw new Exception(response.ErrorMessage, response.ErrorException);
-            }
+                    var content = response.Content ?? throw new Exception("No content found in response.");
 
-            return JsonConvert.DeserializeObject<T>(content)!;
+                    // Handle specific rate-limit error code (adjust as needed)
+                    if (response.StatusCode == (HttpStatusCode)429)
+                    {
+                        if (retries < maxRetries)
+                        {
+                            int delay = initialBackoffDelay * (int)Math.Pow(backoffFactor, retries);
+                            await Task.Delay(delay);
+                            retries++;
+                            continue; // Retry
+                        }
+
+                        // Handle case where retries are exhausted
+                        throw new TaxjarException(response.StatusCode, null, "Rate limit exceeded after retries.");
+                    }
+
+                    // Your existing handling for other errors
+                    if ((int)response.StatusCode >= 400)
+                    {
+                        var taxjarError = JsonConvert.DeserializeObject<TaxjarError>(content);
+                        var errorMessage = taxjarError?.Error + " - " + taxjarError?.Detail;
+                        throw new TaxjarException(response.StatusCode, taxjarError, errorMessage);
+                    }
+
+                    if (response.ErrorException != null)
+                    {
+                        throw new Exception(response.ErrorMessage, response.ErrorException);
+                    }
+
+                    return JsonConvert.DeserializeObject<T>(content)!;
+                }
+                catch (Exception)
+                {
+                    // Consider more specific handling for network-related vs. API errors
+                    if (retries < maxRetries)
+                    {
+                        int delay = initialBackoffDelay * (int)Math.Pow(backoffFactor, retries);
+                        await Task.Delay(delay);
+                        retries++;
+                    }
+                    else
+                    {
+                        throw; // Re-throw the exception after retries are exhausted
+                    }
+                }
+            }
         }
+
 
         protected virtual bool IsAnonymousType(Type type)
         {

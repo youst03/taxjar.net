@@ -36,7 +36,7 @@ namespace Taxjar
             ApiToken = token;
             ApiUrl = TaxjarConstants.DefaultApiUrl + "/" + TaxjarConstants.ApiVersion + "/";
             Headers = new Dictionary<string, string>();
-            Timeout = 0; // Milliseconds
+            Timeout = 10000; // Milliseconds
 
             if (parameters != null)
             {
@@ -98,7 +98,7 @@ namespace Taxjar
             request.AddHeader("Authorization", "Bearer " + ApiToken);
             request.AddHeader("User-Agent", GetUserAgent());
 
-            request.Timeout = Timeout;
+            request.Timeout = new TimeSpan(0,0,0,0,Timeout);
 
             if (body == null) return request;
             if (IsAnonymousType(body.GetType()))

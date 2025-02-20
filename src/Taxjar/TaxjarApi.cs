@@ -169,7 +169,7 @@ namespace Taxjar
 
             int retries = 0;
             int maxRetries = 4; // Adjust the maximum number of retries as needed
-            int initialBackoffDelay = 500; // Initial delay in milliseconds
+            int initialBackoffDelay = 1000; // Initial delay in milliseconds
             int backoffFactor = 2;
 
             while (true)  // Loop until a successful response or maximum retries are reached
